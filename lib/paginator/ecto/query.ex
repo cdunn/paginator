@@ -64,7 +64,7 @@ defmodule Paginator.Ecto.Query do
   end
 
   defp maybe_where(query, %Config{
-         after_values: after_values,
+         after_values: {:ok, after_values},
          before: nil,
          cursor_fields: cursor_fields,
          sort_direction: :asc
@@ -75,7 +75,7 @@ defmodule Paginator.Ecto.Query do
 
   defp maybe_where(query, %Config{
          after_values: nil,
-         before_values: before_values,
+         before_values: {:ok, before_values},
          cursor_fields: cursor_fields,
          sort_direction: :asc
        }) do
@@ -85,8 +85,8 @@ defmodule Paginator.Ecto.Query do
   end
 
   defp maybe_where(query, %Config{
-         after_values: after_values,
-         before_values: before_values,
+         after_values: {:ok, after_values},
+         before_values: {:ok, before_values},
          cursor_fields: cursor_fields,
          sort_direction: :asc
        }) do
@@ -104,7 +104,7 @@ defmodule Paginator.Ecto.Query do
   end
 
   defp maybe_where(query, %Config{
-         after_values: after_values,
+         after_values: {:ok, after_values},
          before: nil,
          cursor_fields: cursor_fields,
          sort_direction: :desc
@@ -115,7 +115,7 @@ defmodule Paginator.Ecto.Query do
 
   defp maybe_where(query, %Config{
          after: nil,
-         before_values: before_values,
+         before_values: {:ok, before_values},
          cursor_fields: cursor_fields,
          sort_direction: :desc
        }) do
@@ -125,8 +125,8 @@ defmodule Paginator.Ecto.Query do
   end
 
   defp maybe_where(query, %Config{
-         after_values: after_values,
-         before_values: before_values,
+         after_values: {:ok, after_values},
+         before_values: {:ok, before_values},
          cursor_fields: cursor_fields,
          sort_direction: :desc
        }) do
