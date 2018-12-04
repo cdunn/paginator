@@ -46,7 +46,7 @@ defmodule Paginator.Mixfile do
       {:ex_machina, "~> 2.1", only: :test},
       {:inch_ex, "~> 1.0", only: [:dev, :test]},
       {:postgrex, "~> 0.13", optional: true},
-      {:plug, "~> 1.4", optional: true}
+      {:plug, "~> 1.7", optional: true}
     ]
   end
 
