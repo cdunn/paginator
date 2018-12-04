@@ -653,10 +653,10 @@ defmodule PaginatorTest do
   test "per-record cursor generation", %{
     payments: {p1, _p2, _p3, _p4, _p5, _p6, p7, _p8, _p9, _p10, _p11, _p12}
   } do
-    assert Paginator.cursor_for_record(p1, [:charged_at, :id])
+    assert Paginator.cursor_for_record(p1, [:charged_at, :id], Cursor)
     == encode_cursor([p1.charged_at, p1.id])
 
-    assert Paginator.cursor_for_record(p7, [:amount])
+    assert Paginator.cursor_for_record(p7, [:amount], Cursor)
     == encode_cursor([p7.amount])
   end
 

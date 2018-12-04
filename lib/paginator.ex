@@ -145,9 +145,12 @@ defmodule Paginator do
   must have the same value as the `cursor_fields` option passed to it.
   """
 
-  @spec cursor_for_record(any(), [atom]) :: binary()
-  def cursor_for_record(record, cursor_fields) do
-    fetch_cursor_value(record, %Config{cursor_fields: cursor_fields})
+  def cursor_for_record(record, cursor_fields, cursor_module, cursor_module_opts \\ []) do
+    fetch_cursor_value(record, %Config{
+      cursor_fields: cursor_fields,
+      cursor_module: cursor_module,
+      cursor_module_opts: cursor_module_opts,
+    })
   end
 
   defp before_cursor([], [], _config), do: nil
