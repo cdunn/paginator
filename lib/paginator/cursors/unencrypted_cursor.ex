@@ -9,7 +9,7 @@ defmodule Paginator.Cursors.UnencryptedCursor do
     {:ok,
      encoded_cursor
      |> Base.url_decode64!()
-     |> :erlang.binary_to_term()}
+     |> :erlang.binary_to_term([:safe])}
   end
 
   def decode!(encoded_cursor, opts \\ []) do
