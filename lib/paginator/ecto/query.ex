@@ -8,6 +8,8 @@ defmodule Paginator.Ecto.Query do
   def paginate(queryable, config \\ [])
 
   def paginate(queryable, %Config{} = config) do
+    IO.inspect(config)
+
     queryable
     |> maybe_where(config)
     |> limit(^query_limit(config))
@@ -18,6 +20,8 @@ defmodule Paginator.Ecto.Query do
   end
 
   defp filter_values(query, cursor_fields, values, operator) do
+    IO.inspect cursor_fields
+    IO.inspect values
     sorts =
       cursor_fields
       |> Enum.zip(values)
@@ -34,8 +38,14 @@ defmodule Paginator.Ecto.Query do
             :lt ->
               dynamic([q], field(q, ^column) < ^value and ^dynamic)
 
+            :lt_or_null ->
+              dynamic([q], (field(q, ^column) < ^value or is_nil(field(q, ^column))) and ^dynamic)
+
             :gt ->
               dynamic([q], field(q, ^column) > ^value and ^dynamic)
+
+            :gt_or_null ->
+              dynamic([q], (field(q, ^column) > ^value or is_nil(field(q, ^column))) and ^dynamic)
           end
 
         dynamic =
@@ -52,7 +62,25 @@ defmodule Paginator.Ecto.Query do
         end
       end)
 
+    IO.inspect dynamic_sorts
+
     where(query, [q], ^dynamic_sorts)
+  end
+
+  defp maybe_where(query, %Config{
+         after_values: nil,
+         before_values: nil,
+         sort_direction: :asc_nulls_first
+       }) do
+    query
+  end
+
+  defp maybe_where(query, %Config{
+         after_values: nil,
+         before_values: nil,
+         sort_direction: :asc_nulls_last
+       }) do
+    query
   end
 
   defp maybe_where(query, %Config{
@@ -98,6 +126,22 @@ defmodule Paginator.Ecto.Query do
   defp maybe_where(query, %Config{
          after: nil,
          before: nil,
+         sort_direction: :desc_nulls_first
+       }) do
+    query
+  end
+
+  defp maybe_where(query, %Config{
+         after: nil,
+         before: nil,
+         sort_direction: :desc_nulls_last
+       }) do
+    query
+  end
+
+  defp maybe_where(query, %Config{
+         after: nil,
+         before: nil,
          sort_direction: :desc
        }) do
     query
@@ -114,6 +158,26 @@ defmodule Paginator.Ecto.Query do
   end
 
   defp maybe_where(query, %Config{
+         after_values: {:ok, after_values},
+         before: nil,
+         cursor_fields: cursor_fields,
+         sort_direction: :desc_nulls_last
+       }) do
+    query
+    |> filter_values(cursor_fields, after_values, :lt_or_null)
+  end
+
+  defp maybe_where(query, %Config{
+         after_values: {:ok, after_values},
+         before: nil,
+         cursor_fields: cursor_fields,
+         sort_direction: :desc_nulls_first
+       }) do
+    query
+    |> filter_values(cursor_fields, after_values, :lt_or_null)
+  end
+
+  defp maybe_where(query, %Config{
          after: nil,
          before_values: {:ok, before_values},
          cursor_fields: cursor_fields,
@@ -121,6 +185,17 @@ defmodule Paginator.Ecto.Query do
        }) do
     query
     |> filter_values(cursor_fields, before_values, :gt)
+    |> reverse_order_bys()
+  end
+
+  defp maybe_where(query, %Config{
+         after: nil,
+         before_values: {:ok, before_values},
+         cursor_fields: cursor_fields,
+         sort_direction: :desc_nulls_last
+       }) do
+    query
+    |> filter_values(cursor_fields, before_values, :gt_or_null)
     |> reverse_order_bys()
   end
 
@@ -133,6 +208,17 @@ defmodule Paginator.Ecto.Query do
     query
     |> filter_values(cursor_fields, after_values, :lt)
     |> filter_values(cursor_fields, before_values, :gt)
+  end
+
+  defp maybe_where(query, %Config{
+         after_values: {:ok, after_values},
+         before_values: {:ok, before_values},
+         cursor_fields: cursor_fields,
+         sort_direction: :desc_nulls_last
+       }) do
+    query
+    |> filter_values(cursor_fields, after_values, :lt_or_null)
+    |> filter_values(cursor_fields, before_values, :gt_or_null)
   end
 
   #  In order to return the correct pagination cursors, we need to fetch one more
@@ -154,11 +240,11 @@ defmodule Paginator.Ecto.Query do
             | expr:
                 Enum.map(expr, fn
                   {:desc, ast} -> {:asc, ast}
-                  {:desc_nulls_first, ast} -> {:asc, ast}
-                  {:desc_nulls_last, ast} -> {:asc, ast}
+                  {:desc_nulls_last, ast} -> {:asc_nulls_first, ast}
+                  {:desc_nulls_first, ast} -> {:asc_nulls_last, ast}
                   {:asc, ast} -> {:desc, ast}
-                  {:asc_nulls_first, ast} -> {:desc, ast}
-                  {:asc_nulls_last, ast} -> {:desc, ast}
+                  {:asc_nulls_last, ast} -> {:desc_nulls_first, ast}
+                  {:asc_nulls_first, ast} -> {:desc_nulls_last, ast}
                 end)
           }
         end
