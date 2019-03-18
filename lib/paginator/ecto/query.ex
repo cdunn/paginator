@@ -154,11 +154,7 @@ defmodule Paginator.Ecto.Query do
             | expr:
                 Enum.map(expr, fn
                   {:desc, ast} -> {:asc, ast}
-                  {:desc_nulls_first, ast} -> {:asc, ast}
-                  {:desc_nulls_last, ast} -> {:asc, ast}
                   {:asc, ast} -> {:desc, ast}
-                  {:asc_nulls_first, ast} -> {:desc, ast}
-                  {:asc_nulls_last, ast} -> {:desc, ast}
                 end)
           }
         end
