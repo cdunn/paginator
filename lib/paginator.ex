@@ -48,7 +48,7 @@ defmodule Paginator do
 
   import Ecto.Query
 
-  alias Paginator.{Config, Ecto.Query, Page, Page.Metadata}
+  alias Paginator.{Config, Ecto.Query, Page, Page.Metadata, CursorDecodeError}
 
   defmacro __using__(opts) do
     quote do
@@ -58,21 +58,22 @@ defmodule Paginator do
         opts = Keyword.merge(@defaults, opts)
         config = Config.new(opts)
 
-        case config do
+        with :ok <- (case config do
           %{cursor_fields: nil} ->
             raise("expected `:cursor_fields` to be set in call to paginate/3")
 
           %{after_values: {:error, err}} ->
-            raise("error decoding `:after` cursor (#{err})")
+            raise(CursorDecodeError, message: "error decoding `:after` cursor (#{err})")
+            {:error, :decoding_cursor_error}
 
           %{before_values: {:error, err}} ->
-            raise("error decoding `:before` cursor (#{err})")
+            raise(CursorDecodeError, message: "error decoding `:before` cursor (#{err})")
 
           _ ->
-            nil
+            :ok
+        end) do
+          Paginator.paginate(queryable, opts, __MODULE__, repo_opts)
         end
-
-        Paginator.paginate(queryable, opts, __MODULE__, repo_opts)
       end
     end
   end

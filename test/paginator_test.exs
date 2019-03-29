@@ -719,7 +719,7 @@ defmodule PaginatorTest do
       customers: {c1, _c2, _c3},
       key: key
     } do
-      assert_raise RuntimeError,
+      assert_raise Paginator.CursorDecodeError,
                    "error decoding `:after` cursor (Could not decode encrypted cursor)",
                    fn ->
                      customer_payments_by_amount(c1)
